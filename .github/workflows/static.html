@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flying Hearts on Tree</title>
+    <style>
+        body { margin: 0; }
+        canvas { display: block; }
+    </style>
+</head>
+<body>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        let scene, camera, renderer;
+        let treeTrunk, treeCrown, hearts = [];
+        let angle = 0;
+
+        function init() {
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0xeeeeee);
+
+
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.z = 50;
+
+
+            renderer = new THREE.WebGLRenderer();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            document.body.appendChild(renderer.domElement);
+            const trunkGeometry = new THREE.CylinderGeometry(2, 2, 20, 32);
+            const trunkMaterial = new THREE.MeshBasicMaterial({ color: 0x8B4513 });  // Deep brown color for trunk
+            treeTrunk = new THREE.Mesh(trunkGeometry, trunkMaterial);
+            treeTrunk.position.y = -10;
+            scene.add(treeTrunk);
+            const crownGeometry = new THREE.SphereGeometry(12, 32, 32);
+            const crownMaterial = new THREE.MeshBasicMaterial({ color: 0x32CD32, wireframe: false });
+            treeCrown = new THREE.Mesh(crownGeometry, crownMaterial);
+            treeCrown.position.y = 10; 
+            scene.add(treeCrown);
+            addText("光不熄，爱不尽");
+            animate();
+        }
+
+        
+        function createHeart() {
+            const heartShape = new THREE.Shape();
+            const size = 0.5; 
+            heartShape.moveTo(0, size / 2);
+            heartShape.bezierCurveTo(size, size, size, 0, 0, -size);
+            heartShape.bezierCurveTo(-size, 0, -size, size, 0, size / 2);
+
+            const extrudeSettings = { depth: 0.2, bevelEnabled: true, bevelThickness: 0.05, bevelSize: 0.1, bevelOffset: 0, bevelSegments: 1 };
+            const heartGeometry = new THREE.ExtrudeGeometry(heartShape, extrudeSettings);
+            const heartMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+
+            const heart = new THREE.Mesh(heartGeometry, heartMaterial);
+
+            
+            heart.position.x = Math.random() * 6 - 3;
+            heart.position.y = Math.random() * 5 + 15;  
+            heart.position.z = Math.random() * 6 - 3;
+
+            
+            heart.velocity = new THREE.Vector3(
+                (Math.random() - 0.5) * 0.2, 
+                (Math.random() - 0.5) * 0.2,  
+                (Math.random() - 0.5) * 0.2   
+            );
+
+            hearts.push(heart);
+            scene.add(heart);
+        }
+        function animate() {
+            requestAnimationFrame(animate);
+            if (Math.random() < 0.05) { 
+                createHeart();
+            }
+            hearts.forEach(heart => {
+                heart.position.add(heart.velocity); 
+
+                if (heart.position.y > 50 || Math.abs(heart.position.x) > 20 || Math.abs(heart.position.z) > 20) {
+                   
+                    scene.remove(heart);
+                    hearts = hearts.filter(h => h !== heart);
+                }
+            });
+
+           
+            treeTrunk.rotation.y += 0.005;
+            treeCrown.rotation.y += 0.005;
+
+            
+            angle += 0.005; 
+            camera.position.x = 50 * Math.sin(angle);
+            camera.position.y = 50 * Math.cos(angle);
+            camera.lookAt(scene.position);
+
+            renderer.render(scene, camera);
+        }
+
+        init();
+    </script>
+</body>
+</html>
